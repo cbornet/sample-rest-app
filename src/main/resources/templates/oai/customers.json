@@ -1,0 +1,81 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "rest",
+    "version": "0.0.1"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080/api",
+      "description": "Development server"
+    },
+    {
+      "url": "https://localhost:8080/api",
+      "description": "Development server with TLS Profile"
+    }
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "summary": "Get entities",
+        "responses": {}
+      }
+    },
+    "/customers": {
+      "post": {
+        "summary": "Create a new customer",
+        "requestBody": {
+          "content": {
+            "application/json":{
+              "schema":{
+                "$ref":"#/components/schemas/Customer"
+              }
+            }
+          }
+        },
+        "responses": {
+        }
+      }
+    }[# th:each="customer, iStat : ${customers}"],
+    "/customers/[( ${customer.id} )]": {
+      "get": {
+        "summary": "Get customer [( ${customer.id} )]",
+        "responses": {}
+      }
+    }
+[/]
+  },
+  "components": {
+    "schemas": {
+      "Customer": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "jwt": {
+        "type": "http",
+        "description": "JWT Authentication",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      },
+      "basic": {
+        "type": "http",
+        "description": "Basic Authentication",
+        "scheme": "basic"
+      }
+    }
+  },
+  "security": [
+    {
+      "jwt": []
+    },
+    {
+      "basic": []
+    }
+  ]
+}

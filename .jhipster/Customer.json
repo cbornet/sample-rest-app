@@ -1,0 +1,21 @@
+{
+  "fields": [
+    {
+      "fieldName": "name",
+      "fieldType": "String"
+    }
+  ],
+  "relationships": [
+    {
+      "relationshipName": "order",
+      "otherEntityName": "order",
+      "relationshipType": "one-to-many",
+      "otherEntityRelationshipName": "customer"
+    }
+  ],
+  "service": "no",
+  "readOnly": false,
+  "pagination": "no",
+  "name": "Customer",
+  "changelogDate": "20200915115633"
+}

@@ -1,0 +1,54 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "rest",
+    "version": "0.0.1"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080/api",
+      "description": "Development server"
+    },
+    {
+      "url": "https://localhost:8080/api",
+      "description": "Development server with TLS Profile"
+    }
+  ],
+  "paths": {
+    "/customers": {
+      "get": {
+        "summary": "Get customers",
+        "responses": {}
+      }
+    },
+    "/orders": {
+      "get": {
+        "summary": "Get orders",
+        "responses": {}
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "jwt": {
+        "type": "http",
+        "description": "JWT Authentication",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      },
+      "basic": {
+        "type": "http",
+        "description": "Basic Authentication",
+        "scheme": "basic"
+      }
+    }
+  },
+  "security": [
+    {
+      "jwt": []
+    },
+    {
+      "basic": []
+    }
+  ]
+}

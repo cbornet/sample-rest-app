@@ -1,0 +1,83 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "rest",
+    "version": "0.0.1"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080/api",
+      "description": "Development server"
+    },
+    {
+      "url": "https://localhost:8080/api",
+      "description": "Development server with TLS Profile"
+    }
+  ],
+  "paths": {
+    "/customers/[( ${customer.id} )]": {
+      "put": {
+        "summary": "Update customer [( ${customer.id} )]",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Customer"
+              }
+            }
+          }
+        },
+        "responses": {}
+      },
+      "delete": {
+        "summary": "Delete customer [( ${customer.id} )]",
+        "responses": {}
+      }
+    },
+    "/customers/[( ${customer.id} )]/orders": {
+      "get": {
+        "summary": "Get customer [( ${customer.id} )] orders",
+        "responses": {}
+      }
+    },
+    "/customers": {
+      "get": {
+        "summary": "Get all customers",
+        "responses": {}
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Customer": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "jwt": {
+        "type": "http",
+        "description": "JWT Authentication",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      },
+      "basic": {
+        "type": "http",
+        "description": "Basic Authentication",
+        "scheme": "basic"
+      }
+    }
+  },
+  "security": [
+    {
+      "jwt": []
+    },
+    {
+      "basic": []
+    }
+  ]
+}

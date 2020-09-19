@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.server.*;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -24,6 +25,8 @@ import org.springframework.http.MediaType;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
+import org.thymeleaf.spring5.templateresolver.SpringResourceTemplateResolver;
+import org.thymeleaf.templatemode.TemplateMode;
 
 /**
  * Configuration of web application with Servlet 3.0 APIs.
@@ -128,5 +131,17 @@ public class WebConfigurer implements ServletContextInitializer, WebServerFactor
     private void initH2Console(ServletContext servletContext) {
         log.debug("Initialize H2 console");
         H2ConfigurationHelper.initH2Console(servletContext);
+    }
+
+    @Bean
+    SpringResourceTemplateResolver defaultTemplateResolver(ApplicationContext applicationContext) {
+        SpringResourceTemplateResolver resolver = new SpringResourceTemplateResolver();
+        resolver.setApplicationContext(applicationContext);
+        resolver.setPrefix("classpath:/templates/");
+        resolver.setSuffix(".json");
+        resolver.setTemplateMode(TemplateMode.TEXT);
+        resolver.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        resolver.setCheckExistence(true);
+        return resolver;
     }
 }

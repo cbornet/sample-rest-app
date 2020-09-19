@@ -1,0 +1,128 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "rest",
+    "version": "0.0.1"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080/api",
+      "description": "Development server"
+    },
+    {
+      "url": "https://localhost:8080/api",
+      "description": "Development server with TLS Profile"
+    }
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "summary": "Get entities",
+        "responses": {}
+      }
+    },
+[# th:if="${totalPages} > 1"]
+    "[( ${resourceUrl} )]?page=0": {
+      "get": {
+        "summary": "Get first page of orders",
+        "responses": {}
+      }
+    },
+[/]
+[# th:if="${currentPage} > 0"]
+    "[( ${resourceUrl} )]?page=[( ${currentPage} - 1)]": {
+      "get": {
+        "summary": "Get previous page of orders",
+        "responses": {}
+      }
+    },
+[/]
+[# th:if="${currentPage} < ${totalPages} - 1"]
+    "[( ${resourceUrl} )]?page=[( ${currentPage} + 1)]": {
+      "get": {
+        "summary": "Get next page of orders",
+        "responses": {}
+      }
+    },
+[/]
+[# th:if="${totalPages} > 1"]
+    "[( ${resourceUrl} )]?page=[( ${totalPages} - 1 )]": {
+      "get": {
+        "summary": "Get last page of orders",
+        "responses": {}
+      }
+    },
+[/]
+    "/orders": {
+      "post": {
+        "summary": "Create a new order",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Order"
+              }
+            }
+          }
+        },
+        "responses": {}
+      }
+    }[# th:each="order, iStat : ${orders}"],
+    "/orders/[( ${order.id} )]": {
+      "get": {
+        "summary": "Get order [( ${order.id} )]",
+        "responses": {}
+      }
+    }
+[/]
+  },
+  "components": {
+    "schemas": {
+      "Order": {
+        "type": "object",
+        "properties": {
+          "product": {
+            "type": "string"
+          },
+          "cost": {
+            "type": "number"
+          },
+          "customer": {
+            "schema": {
+              "$ref":"#/components/schemas/Customer"
+            }
+          }
+        }
+      },
+      "Customer": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "jwt": {
+        "type": "http",
+        "description": "JWT Authentication",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      },
+      "basic": {
+        "type": "http",
+        "description": "Basic Authentication",
+        "scheme": "basic"
+      }
+    }
+  },
+  "security": [
+    {
+      "jwt": []
+    },
+    {
+      "basic": []
+    }
+  ]
+}

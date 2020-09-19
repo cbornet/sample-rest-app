@@ -1,0 +1,109 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "rest",
+    "version": "0.0.1"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080/api",
+      "description": "Development server"
+    },
+    {
+      "url": "https://localhost:8080/api",
+      "description": "Development server with TLS Profile"
+    }
+  ],
+  "paths": {
+    "/orders/[( ${order.id} )]": {
+      "put": {
+        "summary": "Update order [( ${order.id} )]",
+        "requestBody": {
+          "content": {
+            "application/json":{
+              "schema":{
+                "$ref":"#/components/schemas/Order"
+              }
+            }
+          }
+        },
+        "responses": {
+        }
+      },
+      "delete": {
+        "summary": "Delete order [( ${order.id} )]",
+        "responses": {
+        }
+      }
+    },
+[# th:if="${order.customer}"]
+    "/customers/[( ${order.customer.id} )]": {
+      "get": {
+        "summary": "Get this order's customer (id=[( ${order.customer.id} )])",
+        "responses": {
+        }
+      }
+    },
+[/]
+    "/orders": {
+      "get": {
+        "summary": "Get all orders",
+        "responses": {
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Order": {
+        "type": "object",
+        "properties": {
+          "product": {
+            "type": "string"
+          },
+          "cost": {
+            "type": "number"
+          },
+          "customer": {
+            "schema": {
+              "$ref":"#/components/schemas/Customer"
+            }
+          }
+        }
+      },
+      "Customer": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "jwt": {
+        "type": "http",
+        "description": "JWT Authentication",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      },
+      "basic": {
+        "type": "http",
+        "description": "Basic Authentication",
+        "scheme": "basic"
+      }
+    }
+  },
+  "security": [
+    {
+      "jwt": [
+
+      ]
+    },
+    {
+      "basic": [
+
+      ]
+    }
+  ]
+}
