@@ -17,12 +17,12 @@
   "paths": {
     "/": {
       "get": {
-        "summary": "Get entities",
+        "summary": "Home",
         "responses": {}
       }
     },
 [# th:if="${totalPages} > 1"]
-    "[( ${resourceUrl} )]?page=0": {
+    "[( ${resourceUrl} )]?page=0&size=[( ${pageSize} )][( ${sortQueryParam} )]": {
       "get": {
         "summary": "Get first page of orders",
         "responses": {}
@@ -30,23 +30,23 @@
     },
 [/]
 [# th:if="${currentPage} > 0"]
-    "[( ${resourceUrl} )]?page=[( ${currentPage} - 1)]": {
+    "[( ${resourceUrl} )]?page=[( ${currentPage} - 1 )]&size=[( ${pageSize} )][( ${sortQueryParam} )]": {
       "get": {
-        "summary": "Get previous page of orders",
+        "summary": "Get previous page of orders ([( ${currentPage} - 1 )]/[( ${totalPages} - 1 )]])",
         "responses": {}
       }
     },
 [/]
 [# th:if="${currentPage} < ${totalPages} - 1"]
-    "[( ${resourceUrl} )]?page=[( ${currentPage} + 1)]": {
+    "[( ${resourceUrl} )]?page=[( ${currentPage} + 1 )]&size=[( ${pageSize} )][( ${sortQueryParam} )]": {
       "get": {
-        "summary": "Get next page of orders",
+        "summary": "Get next page of orders ([( ${currentPage} + 1 )]/[( ${totalPages} - 1 )])",
         "responses": {}
       }
     },
 [/]
 [# th:if="${totalPages} > 1"]
-    "[( ${resourceUrl} )]?page=[( ${totalPages} - 1 )]": {
+    "[( ${resourceUrl} )]?page=[( ${totalPages} - 1 )]&size=[( ${pageSize} )][( ${sortQueryParam} )]": {
       "get": {
         "summary": "Get last page of orders",
         "responses": {}
@@ -54,6 +54,36 @@
     },
 [/]
     "/orders": {
+      "get": {
+        "summary": "Get orders",
+        "parameters":[
+          {
+            "name":"page",
+            "in":"query",
+            "description":"Page number to fetch",
+            "schema":{
+              "type":"integer"
+            }
+          },
+          {
+            "name":"size",
+            "in":"query",
+            "description":"Size of a page",
+            "schema":{
+              "type":"integer"
+            }
+          },
+          {
+            "name":"sort",
+            "in":"query",
+            "description":"Sorting criteria in the format: property(,asc|desc). Default sort order is ascending. Multiple sort criteria are supported.",
+            "schema":{
+              "type":"string"
+            }
+          }
+        ],
+        "responses": {}
+      },
       "post": {
         "summary": "Create a new order",
         "requestBody": {

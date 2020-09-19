@@ -3,25 +3,24 @@ package com.mycompany.myapp.web.rest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mycompany.myapp.domain.Customer;
-import com.mycompany.myapp.domain.Order;
 import com.mycompany.myapp.repository.CustomerRepository;
-import com.mycompany.myapp.repository.OrderRepository;
 import com.mycompany.myapp.web.rest.errors.BadRequestAlertException;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ResourceLoader;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.web.servlet.view.RedirectView;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring5.SpringTemplateEngine;
 
@@ -36,16 +35,14 @@ public class CustomerResource {
 
     private static final String ENTITY_NAME = "customer";
 
-    @Value("${jhipster.clientApp.name}")
-    private String applicationName;
-
     private final CustomerRepository customerRepository;
     private final SpringTemplateEngine templateEngine;
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper;
 
-    public CustomerResource(CustomerRepository customerRepository, SpringTemplateEngine templateEngine) {
+    public CustomerResource(CustomerRepository customerRepository, SpringTemplateEngine templateEngine, ObjectMapper mapper) {
         this.customerRepository = customerRepository;
         this.templateEngine = templateEngine;
+        this.mapper = mapper;
     }
 
     /**
@@ -53,10 +50,9 @@ public class CustomerResource {
      *
      * @param customer the customer to create.
      * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with body the new customer, or with status {@code 400 (Bad Request)} if the customer has already an ID.
-     * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("/customers")
-    public RestResponse createCustomer(@RequestBody Customer customer) throws URISyntaxException, IOException {
+    public RestResponse createCustomer(@RequestBody Customer customer) throws IOException {
         log.debug("REST request to save Customer : {}", customer);
         if (customer.getId() != null) {
             throw new BadRequestAlertException("A new customer cannot already have an ID", ENTITY_NAME, "idexists");
@@ -110,7 +106,7 @@ public class CustomerResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the customer, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/customers/{id}")
-    public RestResponse getCustomer(@PathVariable Long id) throws IOException {
+    public RestResponse getCustomer(@PathVariable Long id) {
         log.debug("REST request to get Customer : {}", id);
 
         return customerRepository

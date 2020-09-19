@@ -1,32 +1,28 @@
 package com.mycompany.myapp.web.rest;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mycompany.myapp.domain.Customer;
 import com.mycompany.myapp.domain.Order;
 import com.mycompany.myapp.repository.OrderRepository;
 import com.mycompany.myapp.web.rest.errors.BadRequestAlertException;
-import io.github.jhipster.web.util.HeaderUtil;
-import io.github.jhipster.web.util.PaginationUtil;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.List;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.web.servlet.view.RedirectView;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring5.SpringTemplateEngine;
 
@@ -41,17 +37,15 @@ public class OrderResource {
 
     private static final String ENTITY_NAME = "order";
 
-    @Value("${jhipster.clientApp.name}")
-    private String applicationName;
-
     private final OrderRepository orderRepository;
 
     private final SpringTemplateEngine templateEngine;
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper;
 
-    public OrderResource(OrderRepository orderRepository, SpringTemplateEngine templateEngine) {
+    public OrderResource(OrderRepository orderRepository, SpringTemplateEngine templateEngine, ObjectMapper mapper) {
         this.orderRepository = orderRepository;
         this.templateEngine = templateEngine;
+        this.mapper = mapper;
     }
 
     /**
@@ -59,10 +53,9 @@ public class OrderResource {
      *
      * @param order the order to create.
      * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with body the new order, or with status {@code 400 (Bad Request)} if the order has already an ID.
-     * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("/orders")
-    public RestResponse createOrder(@RequestBody Order order) throws URISyntaxException, JsonProcessingException {
+    public RestResponse createOrder(@RequestBody Order order) throws JsonProcessingException {
         log.debug("REST request to save Order : {}", order);
         if (order.getId() != null) {
             throw new BadRequestAlertException("A new order cannot already have an ID", ENTITY_NAME, "idexists");
@@ -109,7 +102,13 @@ public class OrderResource {
         context.setVariable("totalPages", page.getTotalPages());
         context.setVariable("currentPage", page.getNumber());
         context.setVariable("resourceUrl", "/orders");
-        // TODO: propagate Sort
+        context.setVariable("pageSize", pageable.getPageSize());
+        final String sortParam = pageable
+            .getSort()
+            .stream()
+            .map(order -> order.getProperty() + "," + order.getDirection())
+            .collect(Collectors.joining("&"));
+        context.setVariable("sortQueryParam", sortParam.isEmpty() ? "" : "&sort=" + sortParam);
 
         String content = templateEngine.process("oai/orders.json", context);
         return new RestResponse(page.getContent(), mapper.readTree(content));

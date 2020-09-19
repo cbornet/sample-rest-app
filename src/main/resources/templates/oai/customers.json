@@ -17,7 +17,7 @@
   "paths": {
     "/": {
       "get": {
-        "summary": "Get entities",
+        "summary": "Home",
         "responses": {}
       }
     },
