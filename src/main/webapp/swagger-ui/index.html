@@ -33,11 +33,11 @@
 
             // Build a system
             var ui = SwaggerUIBundle({
-                urls: urls,
+                url: "/api",
                 dom_id: '#swagger-ui',
                 deepLinking: true,
                 filter: true,
-                layout: "StandaloneLayout",
+                layout: "BaseLayout",
                 withCredentials: true,
                 presets: [
                     SwaggerUIBundle.presets.apis,
