@@ -1,11 +1,111 @@
-id;product;cost;customer
-1;portal reboot;66933;1
-2;Orchestrator North;69947;1
-3;Eritrea;77186;2
-4;Berkshire Buckinghamshire;96360;
-5;virtual HDD;67206;
-6;RSS;40656;
-7;synergize;89808;
-8;Rial Slovenia Cotton;14645;
-9;Path;92332;
-10;multi-tasking Jewelery;12713;
+id;product;cost;customer_id
+1;Small Granite Mouse;676.00;2
+2;Handmade Steel Car;736.00;1
+3;Awesome Concrete Fish;220.00;5
+4;Handmade Concrete Chair;127.00;9
+5;Licensed Cotton Bike;907.00;4
+6;Tasty Wooden Ball;410.00;4
+7;Ergonomic Granite Chips;604.00;6
+8;Practical Cotton Bike;77.00;10
+9;Awesome Rubber Gloves;227.00;7
+10;Refined Steel Table;194.00;5
+11;Generic Frozen Bike;833.00;10
+12;Fantastic Metal Sausages;857.00;4
+13;Licensed Cotton Pants;993.00;1
+14;Gorgeous Granite Bacon;776.00;1
+15;Handmade Concrete Gloves;820.00;10
+16;Fantastic Metal Car;424.00;2
+17;Handmade Rubber Car;920.00;4
+18;Practical Plastic Tuna;268.00;3
+19;Fantastic Steel Keyboard;73.00;2
+20;Fantastic Rubber Fish;804.00;9
+21;Fantastic Granite Ball;333.00;4
+22;Handmade Fresh Car;561.00;7
+23;Fantastic Cotton Hat;401.00;5
+24;Tasty Rubber Shirt;290.00;10
+25;Incredible Granite Car;415.00;1
+26;Intelligent Soft Chips;637.00;9
+27;Awesome Metal Fish;349.00;9
+28;Licensed Metal Keyboard;655.00;10
+29;Ergonomic Frozen Tuna;204.00;4
+30;Awesome Rubber Ball;843.00;4
+31;Incredible Wooden Cheese;608.00;6
+32;Awesome Soft Pizza;188.00;9
+33;Unbranded Plastic Keyboard;632.00;4
+34;Refined Soft Ball;756.00;2
+35;Practical Rubber Table;276.00;1
+36;Rustic Fresh Bacon;144.00;3
+37;Tasty Steel Chair;101.00;2
+38;Practical Metal Towels;235.00;9
+39;Handcrafted Wooden Chicken;967.00;6
+40;Sleek Cotton Tuna;441.00;1
+41;Practical Granite Table;39.00;7
+42;Sleek Cotton Chair;862.00;10
+43;Awesome Cotton Pizza;426.00;4
+44;Rustic Frozen Fish;533.00;5
+45;Practical Soft Shoes;111.00;5
+46;Handmade Wooden Fish;350.00;3
+47;Refined Plastic Table;609.00;4
+48;Sleek Rubber Fish;60.00;2
+49;Handcrafted Wooden Tuna;380.00;9
+50;Sleek Wooden Towels;87.00;9
+51;Handcrafted Rubber Tuna;887.00;8
+52;Sleek Plastic Car;686.00;5
+53;Licensed Concrete Pizza;494.00;5
+54;Incredible Cotton Shoes;995.00;7
+55;Incredible Steel Table;915.00;1
+56;Refined Cotton Car;716.00;8
+57;Ergonomic Metal Sausages;115.00;10
+58;Awesome Fresh Gloves;483.00;1
+59;Ergonomic Metal Shirt;297.00;4
+60;Handcrafted Wooden Bacon;1.00;7
+61;Gorgeous Concrete Shirt;165.00;2
+62;Refined Frozen Shoes;918.00;8
+63;Fantastic Concrete Cheese;203.00;7
+64;Handcrafted Rubber Computer;57.00;6
+65;Intelligent Cotton Cheese;603.00;2
+66;Rustic Wooden Table;957.00;5
+67;Practical Steel Tuna;77.00;1
+68;Gorgeous Rubber Salad;29.00;5
+69;Handmade Frozen Fish;746.00;9
+70;Small Rubber Computer;799.00;1
+71;Generic Soft Cheese;455.00;6
+72;Licensed Cotton Towels;736.00;9
+73;Gorgeous Granite Tuna;272.00;5
+74;Tasty Fresh Chips;600.00;4
+75;Sleek Fresh Chair;206.00;7
+76;Intelligent Granite Keyboard;470.00;3
+77;Gorgeous Granite Chicken;866.00;3
+78;Handmade Frozen Bacon;215.00;2
+79;Unbranded Concrete Sausages;837.00;9
+80;Fantastic Fresh Table;812.00;9
+81;Unbranded Plastic Computer;274.00;6
+82;Gorgeous Fresh Computer;526.00;3
+83;Unbranded Wooden Fish;366.00;1
+84;Awesome Wooden Ball;74.00;6
+85;Sleek Fresh Salad;567.00;8
+86;Licensed Concrete Computer;744.00;7
+87;Unbranded Cotton Keyboard;407.00;6
+88;Handmade Granite Bacon;282.00;10
+89;Licensed Plastic Towels;51.00;8
+90;Handcrafted Steel Chips;371.00;4
+91;Intelligent Soft Tuna;775.00;7
+92;Intelligent Wooden Table;233.00;2
+93;Ergonomic Steel Hat;109.00;7
+94;Refined Wooden Pants;382.00;9
+95;Practical Concrete Sausages;219.00;4
+96;Unbranded Plastic Sausages;759.00;2
+97;Generic Concrete Shirt;128.00;10
+98;Incredible Concrete Bike;318.00;6
+99;Practical Cotton Sausages;208.00;9
+100;Gorgeous Soft Towels;736.00;5
+101;Handcrafted Frozen Chips;572.00;4
+102;Refined Granite Chair;715.00;3
+103;Handmade Concrete Computer;715.00;3
+104;Handcrafted Concrete Gloves;213.00;8
+105;Incredible Wooden Fish;584.00;10
+106;Licensed Concrete Keyboard;571.00;1
+107;Intelligent Soft Pizza;530.00;10
+108;Generic Soft Mouse;8.00;4
+109;Sleek Concrete Cheese;894.00;7
+110;Generic Soft Sausages;108.00;2
