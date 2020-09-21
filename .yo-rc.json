@@ -46,6 +46,9 @@
     "clientThemeVariant": "primary",
     "useSass": true,
     "languages": ["en"],
-    "lastLiquibaseTimestamp": 1600171139000
+    "lastLiquibaseTimestamp": 1600171139000,
+    "herokuAppName": "rest-openapi-demo",
+    "herokuDeployType": "git",
+    "herokuJavaVersion": "11"
   }
 }
