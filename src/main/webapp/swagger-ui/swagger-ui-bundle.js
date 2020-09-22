@@ -4977,7 +4977,9 @@ object-assign
                 e.duration = l()() - k;
                 var t = JSON.parse(e.text),
                   n = t.controls;
-                (t.controls.info.description = '```json\n' + u()(t.content, null, 4) + '\n```'), r.updateSpec(u()(n));
+                t.controls.info || (t.controls.info = {}),
+                  (t.controls.info.description = '```json\n' + u()(t.content, null, 4) + '\n```'),
+                  r.updateSpec(u()(n));
               })
               .catch(function (e) {
                 console.error(e);
@@ -19577,7 +19579,8 @@ object-assign
                         );
                       s.updateLoadingStatus('success');
                       var n = JSON.parse(t.text);
-                      (n.controls.info.description = '```json\n' + o()(n.content, null, 4) + '\n```'),
+                      n.controls.info || (n.controls.info = {}),
+                        (n.controls.info.description = '```json\n' + o()(n.content, null, 4) + '\n```'),
                         s.updateSpec(o()(n.controls)),
                         i.url() !== e && s.updateUrl(e);
                     }
@@ -19598,7 +19601,7 @@ object-assign
                             return e;
                           },
                         credentials: 'same-origin',
-                        headers: { Accept: 'application/rest.oas+json,*/*' },
+                        headers: { Accept: 'application/ohm+json,*/*' },
                       }).then(f, f);
                   };
                 },
@@ -51783,7 +51786,7 @@ object-assign
         jr = 'g12103024',
         Tr = '3.33.0',
         Ir = 'CL001787',
-        Pr = 'Sun, 20 Sep 2020 22:39:20 GMT';
+        Pr = 'Tue, 22 Sep 2020 21:53:17 GMT';
       function Nr(e) {
         (M.a.versions = M.a.versions || {}),
           (M.a.versions.swaggerUi = { version: Tr, gitRevision: jr, gitDirty: Or, buildTimestamp: Pr, machine: Ir });
