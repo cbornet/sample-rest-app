@@ -101,7 +101,7 @@ public class OrderRestResource {
         context.setVariable("orders", page.getContent());
         context.setVariable("totalPages", page.getTotalPages());
         context.setVariable("currentPage", page.getNumber());
-        context.setVariable("resourceUrl", "/orders");
+        context.setVariable("resourceUrl", "/api/orders");
         context.setVariable("pageSize", pageable.getPageSize());
         final String sortParam = pageable
             .getSort()
@@ -112,9 +112,6 @@ public class OrderRestResource {
 
         String content = templateEngine.process("oai/orders.json", context);
         return new RestResponse(page.getContent(), mapper.readTree(content));
-        //Page<Order> page = orderRepository.findAll(pageable);
-        //HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
-        //return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
 
     /**
@@ -141,8 +138,6 @@ public class OrderRestResource {
                 }
             )
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        //Optional<Order> order = orderRepository.findById(id);
-        //return ResponseUtil.wrapOrNotFound(order);
     }
 
     /**
@@ -169,7 +164,7 @@ public class OrderRestResource {
         context.setVariable("orders", page.getContent());
         context.setVariable("totalPages", page.getTotalPages());
         context.setVariable("currentPage", page.getNumber());
-        context.setVariable("resourceUrl", "/customers/" + id + "/orders");
+        context.setVariable("resourceUrl", "/api/customers/" + id + "/orders");
 
         String content = templateEngine.process("oai/orders.json", context);
         return new RestResponse(page.getContent(), mapper.readTree(content));

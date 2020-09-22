@@ -1,21 +1,7 @@
 {
   "openapi": "3.0.1",
-  "info": {
-    "title": "rest",
-    "version": "0.0.1"
-  },
-  "servers": [
-    {
-      "url": "http://localhost:8080/api",
-      "description": "Development server"
-    },
-    {
-      "url": "https://localhost:8080/api",
-      "description": "Development server with TLS Profile"
-    }
-  ],
   "paths": {
-    "/customers/[( ${customer.id} )]": {
+    "/api/customers/[( ${customer.id} )]": {
       "put": {
         "summary": "Update customer [( ${customer.id} )]",
         "requestBody": {
@@ -26,25 +12,15 @@
               }
             }
           }
-        },
-        "responses": {}
+        }
       },
-      "delete": {
-        "summary": "Delete customer [( ${customer.id} )]",
-        "responses": {}
-      }
+      "delete": { "summary": "Delete customer [( ${customer.id} )]" }
     },
-    "/customers/[( ${customer.id} )]/orders": {
-      "get": {
-        "summary": "Get customer [( ${customer.id} )] orders",
-        "responses": {}
-      }
+    "/api/customers/[( ${customer.id} )]/orders": {
+      "get": { "summary": "Get customer [( ${customer.id} )] orders" }
     },
-    "/customers": {
-      "get": {
-        "summary": "Get all customers",
-        "responses": {}
-      }
+    "/api/customers": {
+      "get": { "summary": "Get all customers" }
     }
   },
   "components": {

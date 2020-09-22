@@ -1,27 +1,10 @@
 {
   "openapi": "3.0.1",
-  "info": {
-    "title": "rest",
-    "version": "0.0.1"
-  },
-  "servers": [
-    {
-      "url": "http://localhost:8080/api",
-      "description": "Development server"
-    },
-    {
-      "url": "https://localhost:8080/api",
-      "description": "Development server with TLS Profile"
-    }
-  ],
   "paths": {
-    "/": {
-      "get": {
-        "summary": "Home",
-        "responses": {}
-      }
+    "/api": {
+      "get": { "summary": "Home" }
     },
-    "/customers": {
+    "/api/customers": {
       "post": {
         "summary": "Create a new customer",
         "requestBody": {
@@ -32,15 +15,11 @@
               }
             }
           }
-        },
-        "responses": {}
+        }
       }
     }[# th:each="customer, iStat : ${customers}"],
-    "/customers/[( ${customer.id} )]": {
-      "get": {
-        "summary": "Get customer [( ${customer.id} )]",
-        "responses": {}
-      }
+    "/api/customers/[( ${customer.id} )]": {
+      "get": { "summary": "Get customer [( ${customer.id} )]" }
     }
 [/]
   },

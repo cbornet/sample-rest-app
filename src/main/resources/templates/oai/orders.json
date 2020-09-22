@@ -1,59 +1,30 @@
 {
   "openapi": "3.0.1",
-  "info": {
-    "title": "rest",
-    "version": "0.0.1"
-  },
-  "servers": [
-    {
-      "url": "http://localhost:8080/api",
-      "description": "Development server"
-    },
-    {
-      "url": "https://localhost:8080/api",
-      "description": "Development server with TLS Profile"
-    }
-  ],
   "paths": {
-    "/": {
-      "get": {
-        "summary": "Home",
-        "responses": {}
-      }
+    "/api": {
+      "get": { "summary": "Home" }
     },
 [# th:if="${totalPages} > 1"]
     "[( ${resourceUrl} )]?page=0&size=[( ${pageSize} )][( ${sortQueryParam} )]": {
-      "get": {
-        "summary": "Get first page of orders",
-        "responses": {}
-      }
+      "get": { "summary": "Get first page of orders" }
     },
 [/]
 [# th:if="${currentPage} > 0"]
     "[( ${resourceUrl} )]?page=[( ${currentPage} - 1 )]&size=[( ${pageSize} )][( ${sortQueryParam} )]": {
-      "get": {
-        "summary": "Get previous page of orders ([( ${currentPage} - 1 )]/[( ${totalPages} - 1 )]])",
-        "responses": {}
-      }
+      "get": { "summary": "Get previous page of orders ([( ${currentPage} - 1 )]/[( ${totalPages} - 1 )]])" }
     },
 [/]
 [# th:if="${currentPage} < ${totalPages} - 1"]
     "[( ${resourceUrl} )]?page=[( ${currentPage} + 1 )]&size=[( ${pageSize} )][( ${sortQueryParam} )]": {
-      "get": {
-        "summary": "Get next page of orders ([( ${currentPage} + 1 )]/[( ${totalPages} - 1 )])",
-        "responses": {}
-      }
+      "get": { "summary": "Get next page of orders ([( ${currentPage} + 1 )]/[( ${totalPages} - 1 )])" }
     },
 [/]
 [# th:if="${totalPages} > 1"]
     "[( ${resourceUrl} )]?page=[( ${totalPages} - 1 )]&size=[( ${pageSize} )][( ${sortQueryParam} )]": {
-      "get": {
-        "summary": "Get last page of orders",
-        "responses": {}
-      }
+      "get": { "summary": "Get last page of orders" }
     },
 [/]
-    "/orders": {
+    "/api/orders": {
       "get": {
         "summary": "Get orders",
         "parameters":[
@@ -81,8 +52,7 @@
               "type":"string"
             }
           }
-        ],
-        "responses": {}
+        ]
       },
       "post": {
         "summary": "Create a new order",
@@ -94,15 +64,11 @@
               }
             }
           }
-        },
-        "responses": {}
+        }
       }
     }[# th:each="order, iStat : ${orders}"],
-    "/orders/[( ${order.id} )]": {
-      "get": {
-        "summary": "Get order [( ${order.id} )]",
-        "responses": {}
-      }
+    "/api/orders/[( ${order.id} )]": {
+      "get": { "summary": "Get order [( ${order.id} )]" }
     }
 [/]
   },
