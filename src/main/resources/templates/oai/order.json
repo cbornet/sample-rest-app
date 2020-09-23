@@ -33,13 +33,15 @@
         "type": "object",
         "properties": {
           "cost": {
-            "type": "number"
+            "type": "number",
+            "example": [( ${order.cost} )]
           },
           "customer": {
             "type": "object",
             "properties": {
               "id": {
-                "type": "integer"
+                "type": "integer",
+                "example": [( ${order.customer.id} )]
               }
             }
           }
