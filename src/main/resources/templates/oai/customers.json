@@ -3,20 +3,6 @@
   "paths": {
     "/api": {
       "get": { "summary": "Home" }
-    },
-    "/api/customers": {
-      "post": {
-        "summary": "Create a new customer",
-        "requestBody": {
-          "content": {
-            "application/json":{
-              "schema":{
-                "$ref":"#/components/schemas/Customer"
-              }
-            }
-          }
-        }
-      }
     }[# th:each="customer, iStat : ${customers}"],
     "/api/customers/[( ${customer.id} )]": {
       "get": { "summary": "Get customer [( ${customer.id} )]" }

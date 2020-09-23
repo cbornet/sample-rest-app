@@ -1,5 +1,10 @@
 {
   "openapi": "3.0.1",
+  "info": {
+    "version": "0.0.1",
+    "title": "Demo REST application using OHM format",
+    "description": "This is the entry point of the application. In the application, customers have orders associated.<br>New orders can be created up to 200 orders in total. Orders with id <= 100 can't be removed.<br>Order collections are paginated."
+  },
   "paths": {
     "/api/customers": {
       "get": { "summary": "Get customers" }

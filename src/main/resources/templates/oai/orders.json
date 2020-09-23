@@ -53,9 +53,10 @@
             }
           }
         ]
-      },
+      }[# th:if="${totalElements} <= 200"],
       "post": {
         "summary": "Create a new order",
+        "description": "Create a new order. The product name will be filled randomly by the server",
         "requestBody": {
           "content": {
             "application/json": {
@@ -66,35 +67,28 @@
           }
         }
       }
+      [/]
     }[# th:each="order, iStat : ${orders}"],
     "/api/orders/[( ${order.id} )]": {
       "get": { "summary": "Get order [( ${order.id} )]" }
     }
-[/]
+    [/]
   },
   "components": {
     "schemas": {
       "Order": {
         "type": "object",
         "properties": {
-          "product": {
-            "type": "string"
-          },
           "cost": {
             "type": "number"
           },
           "customer": {
-            "schema": {
-              "$ref":"#/components/schemas/Customer"
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer"
+              }
             }
-          }
-        }
-      },
-      "Customer": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer"
           }
         }
       }

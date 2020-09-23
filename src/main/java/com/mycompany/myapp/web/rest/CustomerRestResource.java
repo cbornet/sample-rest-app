@@ -46,45 +46,6 @@ public class CustomerRestResource {
     }
 
     /**
-     * {@code POST  /customers} : Create a new customer.
-     *
-     * @param customer the customer to create.
-     * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with body the new customer, or with status {@code 400 (Bad Request)} if the customer has already an ID.
-     */
-    @PostMapping("/customers")
-    public RestResponse createCustomer(@RequestBody Customer customer) throws IOException {
-        log.debug("REST request to save Customer : {}", customer);
-        if (customer.getId() != null) {
-            throw new BadRequestAlertException("A new customer cannot already have an ID", ENTITY_NAME, "idexists");
-        }
-        Customer result = customerRepository.save(customer);
-
-        Context context = new Context();
-        context.setVariable("customer", result);
-        String content = templateEngine.process("oai/customer.json", context);
-        return new RestResponse(result, mapper.readTree(content));
-    }
-
-    /**
-     * {@code PUT  /customers} : Updates an existing customer.
-     *
-     * @param customer the customer to update.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated customer,
-     * or with status {@code 400 (Bad Request)} if the customer is not valid,
-     * or with status {@code 500 (Internal Server Error)} if the customer couldn't be updated.
-     */
-    @PutMapping("/customers/{id}")
-    public RestResponse updateCustomer(@PathVariable Long id, @RequestBody Customer customer) throws JsonProcessingException {
-        log.debug("REST request to update Customer : {}", customer);
-        customer.setId(id);
-        Customer result = customerRepository.save(customer);
-        Context context = new Context();
-        context.setVariable("customer", result);
-        String content = templateEngine.process("oai/customer.json", context);
-        return new RestResponse(result, mapper.readTree(content));
-    }
-
-    /**
      * {@code GET  /customers} : get all the customers.
      *
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of customers in body.
@@ -124,20 +85,5 @@ public class CustomerRestResource {
                 }
             )
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-    }
-
-    /**
-     * {@code DELETE  /customers/:id} : delete the "id" customer.
-     *
-     * @param id the id of the customer to delete.
-     * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
-     */
-    @DeleteMapping("/customers/{id}")
-    public RestResponse deleteCustomer(@PathVariable Long id) throws JsonProcessingException {
-        log.debug("REST request to delete Customer : {}", id);
-        customerRepository.deleteById(id);
-
-        String content = templateEngine.process("oai/entities.json", new Context());
-        return new RestResponse(null, mapper.readTree(content));
     }
 }

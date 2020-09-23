@@ -1,21 +1,6 @@
 {
   "openapi": "3.0.1",
   "paths": {
-    "/api/customers/[( ${customer.id} )]": {
-      "put": {
-        "summary": "Update customer [( ${customer.id} )]",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Customer"
-              }
-            }
-          }
-        }
-      },
-      "delete": { "summary": "Delete customer [( ${customer.id} )]" }
-    },
     "/api/customers/[( ${customer.id} )]/orders": {
       "get": { "summary": "Get customer [( ${customer.id} )] orders" }
     },
@@ -24,16 +9,6 @@
     }
   },
   "components": {
-    "schemas": {
-      "Customer": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          }
-        }
-      }
-    },
     "securitySchemes": {
       "jwt": {
         "type": "http",

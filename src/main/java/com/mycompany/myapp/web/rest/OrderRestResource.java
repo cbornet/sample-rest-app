@@ -2,6 +2,7 @@ package com.mycompany.myapp.web.rest;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.javafaker.Faker;
 import com.mycompany.myapp.domain.Order;
 import com.mycompany.myapp.repository.OrderRepository;
 import com.mycompany.myapp.web.rest.errors.BadRequestAlertException;
@@ -60,6 +61,10 @@ public class OrderRestResource {
         if (order.getId() != null) {
             throw new BadRequestAlertException("A new order cannot already have an ID", ENTITY_NAME, "idexists");
         }
+        if (orderRepository.count() >=200) {
+            throw new ResponseStatusException(HttpStatus.INSUFFICIENT_STORAGE, "Can't have more than 200 orders");
+        }
+        order.setProduct(new Faker().commerce().productName());
         Order result = orderRepository.save(order);
 
         Context context = new Context();
@@ -80,6 +85,12 @@ public class OrderRestResource {
     public RestResponse updateOrder(@PathVariable Long id, @RequestBody Order order) throws JsonProcessingException {
         log.debug("REST request to update Order : {}", order);
         order.setId(id);
+        orderRepository.findById(id).ifPresentOrElse(
+            existingOrder -> order.setProduct(existingOrder.getProduct()),
+            () -> {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+            }
+        );
         Order result = orderRepository.save(order);
         Context context = new Context();
         context.setVariable("order", result);
@@ -103,6 +114,7 @@ public class OrderRestResource {
         context.setVariable("currentPage", page.getNumber());
         context.setVariable("resourceUrl", "/api/orders");
         context.setVariable("pageSize", pageable.getPageSize());
+        context.setVariable("totalElements", page.getTotalElements());
         final String sortParam = pageable
             .getSort()
             .stream()
@@ -149,6 +161,9 @@ public class OrderRestResource {
     @DeleteMapping("/orders/{id}")
     public RestResponse deleteOrder(@PathVariable Long id) throws JsonProcessingException {
         log.debug("REST request to delete Order : {}", id);
+        if (id <=100) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Can't delete orders with id <= 100");
+        }
         orderRepository.deleteById(id);
 
         String content = templateEngine.process("oai/entities.json", new Context());
@@ -165,6 +180,7 @@ public class OrderRestResource {
         context.setVariable("totalPages", page.getTotalPages());
         context.setVariable("currentPage", page.getNumber());
         context.setVariable("resourceUrl", "/api/customers/" + id + "/orders");
+        context.setVariable("totalElements", page.getTotalElements());
 
         String content = templateEngine.process("oai/orders.json", context);
         return new RestResponse(page.getContent(), mapper.readTree(content));
