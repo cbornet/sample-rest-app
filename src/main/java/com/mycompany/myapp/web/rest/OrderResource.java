@@ -1,5 +1,6 @@
 package com.mycompany.myapp.web.rest;
 
+import com.github.javafaker.Faker;
 import com.mycompany.myapp.domain.Order;
 import com.mycompany.myapp.repository.OrderRepository;
 import com.mycompany.myapp.security.AuthoritiesConstants;
@@ -7,12 +8,17 @@ import com.mycompany.myapp.web.rest.errors.BadRequestAlertException;
 import io.github.jhipster.web.util.HeaderUtil;
 import io.github.jhipster.web.util.PaginationUtil;
 import io.github.jhipster.web.util.ResponseUtil;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.List;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,12 +30,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.List;
-import java.util.Optional;
 
 /**
  * REST controller for managing {@link com.mycompany.myapp.domain.Order}.
@@ -65,6 +67,10 @@ public class OrderResource {
         if (order.getId() != null) {
             throw new BadRequestAlertException("A new order cannot already have an ID", ENTITY_NAME, "idexists");
         }
+        if (orderRepository.count() >= 200) {
+            throw new ResponseStatusException(HttpStatus.INSUFFICIENT_STORAGE, "Can't have more than 200 orders");
+        }
+        order.setProduct(new Faker().commerce().productName());
         Order result = orderRepository.save(order);
         return ResponseEntity
             .created(new URI("/api/orders/" + result.getId()))
@@ -129,6 +135,9 @@ public class OrderResource {
     @DeleteMapping("/orders/{id}")
     public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
         log.debug("REST request to delete Order : {}", id);
+        if (id <= 100) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Can't delete orders with id <= 100");
+        }
         orderRepository.deleteById(id);
         return ResponseEntity
             .noContent()

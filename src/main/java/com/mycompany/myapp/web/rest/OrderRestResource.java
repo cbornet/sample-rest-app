@@ -2,11 +2,10 @@ package com.mycompany.myapp.web.rest;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.javafaker.Faker;
 import com.mycompany.myapp.domain.Order;
 import com.mycompany.myapp.repository.OrderRepository;
-import com.mycompany.myapp.web.rest.errors.BadRequestAlertException;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,15 +35,19 @@ import org.thymeleaf.spring5.SpringTemplateEngine;
 public class OrderRestResource {
     private final Logger log = LoggerFactory.getLogger(OrderRestResource.class);
 
-    private static final String ENTITY_NAME = "order";
-
     private final OrderRepository orderRepository;
-
+    private final OrderResource orderResource;
     private final SpringTemplateEngine templateEngine;
     private final ObjectMapper mapper;
 
-    public OrderRestResource(OrderRepository orderRepository, SpringTemplateEngine templateEngine, ObjectMapper mapper) {
+    public OrderRestResource(
+        OrderRepository orderRepository,
+        OrderResource orderResource,
+        SpringTemplateEngine templateEngine,
+        ObjectMapper mapper
+    ) {
         this.orderRepository = orderRepository;
+        this.orderResource = orderResource;
         this.templateEngine = templateEngine;
         this.mapper = mapper;
     }
@@ -56,21 +59,12 @@ public class OrderRestResource {
      * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with body the new order, or with status {@code 400 (Bad Request)} if the order has already an ID.
      */
     @PostMapping("/orders")
-    public RestResponse createOrder(@RequestBody Order order) throws JsonProcessingException {
-        log.debug("REST request to save Order : {}", order);
-        if (order.getId() != null) {
-            throw new BadRequestAlertException("A new order cannot already have an ID", ENTITY_NAME, "idexists");
-        }
-        if (orderRepository.count() >=200) {
-            throw new ResponseStatusException(HttpStatus.INSUFFICIENT_STORAGE, "Can't have more than 200 orders");
-        }
-        order.setProduct(new Faker().commerce().productName());
-        Order result = orderRepository.save(order);
-
+    public RestResponse createOrder(@RequestBody Order order) throws JsonProcessingException, URISyntaxException {
+        final Order createdOrder = orderResource.createOrder(order).getBody();
         Context context = new Context();
-        context.setVariable("order", result);
+        context.setVariable("order", createdOrder);
         String content = templateEngine.process("oai/order.json", context);
-        return new RestResponse(result, mapper.readTree(content));
+        return new RestResponse(createdOrder, mapper.readTree(content));
     }
 
     /**
@@ -85,12 +79,14 @@ public class OrderRestResource {
     public RestResponse updateOrder(@PathVariable Long id, @RequestBody Order order) throws JsonProcessingException {
         log.debug("REST request to update Order : {}", order);
         order.setId(id);
-        orderRepository.findById(id).ifPresentOrElse(
-            existingOrder -> order.setProduct(existingOrder.getProduct()),
-            () -> {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-            }
-        );
+        orderRepository
+            .findById(id)
+            .ifPresentOrElse(
+                existingOrder -> order.setProduct(existingOrder.getProduct()),
+                () -> {
+                    throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+                }
+            );
         Order result = orderRepository.save(order);
         Context context = new Context();
         context.setVariable("order", result);
@@ -133,23 +129,12 @@ public class OrderRestResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the order, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/orders/{id}")
-    public RestResponse getOrder(@PathVariable Long id) {
-        log.debug("REST request to get Order : {}", id);
-        return orderRepository
-            .findById(id)
-            .map(
-                order -> {
-                    Context context = new Context();
-                    context.setVariable("order", order);
-                    String content = templateEngine.process("oai/order.json", context);
-                    try {
-                        return new RestResponse(order, mapper.readTree(content));
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-            )
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    public RestResponse getOrder(@PathVariable Long id) throws JsonProcessingException {
+        final Order order = orderResource.getOrder(id).getBody();
+        Context context = new Context();
+        context.setVariable("order", order);
+        String content = templateEngine.process("oai/order.json", context);
+        return new RestResponse(order, mapper.readTree(content));
     }
 
     /**
@@ -160,12 +145,7 @@ public class OrderRestResource {
      */
     @DeleteMapping("/orders/{id}")
     public RestResponse deleteOrder(@PathVariable Long id) throws JsonProcessingException {
-        log.debug("REST request to delete Order : {}", id);
-        if (id <=100) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Can't delete orders with id <= 100");
-        }
-        orderRepository.deleteById(id);
-
+        orderResource.deleteOrder(id);
         String content = templateEngine.process("oai/entities.json", new Context());
         return new RestResponse(null, mapper.readTree(content));
     }
