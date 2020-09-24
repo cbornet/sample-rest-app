@@ -6,6 +6,10 @@ import com.mycompany.myapp.security.AuthoritiesConstants;
 import com.mycompany.myapp.web.rest.errors.BadRequestAlertException;
 import io.github.jhipster.web.util.HeaderUtil;
 import io.github.jhipster.web.util.ResponseUtil;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.List;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,17 +25,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.List;
-import java.util.Optional;
-
 /**
  * REST controller for managing {@link com.mycompany.myapp.domain.Customer}.
  */
 @RestController
 @RequestMapping(path = "/api", produces = "application/json")
-@Secured(AuthoritiesConstants.ADMIN)
 @Transactional
 public class CustomerResource {
     private final Logger log = LoggerFactory.getLogger(CustomerResource.class);
@@ -54,6 +52,7 @@ public class CustomerResource {
      * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with body the new customer, or with status {@code 400 (Bad Request)} if the customer has already an ID.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
+    @Secured(AuthoritiesConstants.ADMIN)
     @PostMapping("/customers")
     public ResponseEntity<Customer> createCustomer(@RequestBody Customer customer) throws URISyntaxException {
         log.debug("REST request to save Customer : {}", customer);
@@ -75,6 +74,7 @@ public class CustomerResource {
      * or with status {@code 400 (Bad Request)} if the customer is not valid,
      * or with status {@code 500 (Internal Server Error)} if the customer couldn't be updated.
      */
+    @Secured(AuthoritiesConstants.ADMIN)
     @PutMapping("/customers")
     public ResponseEntity<Customer> updateCustomer(@RequestBody Customer customer) {
         log.debug("REST request to update Customer : {}", customer);
@@ -118,6 +118,7 @@ public class CustomerResource {
      * @param id the id of the customer to delete.
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
+    @Secured(AuthoritiesConstants.ADMIN)
     @DeleteMapping("/customers/{id}")
     public ResponseEntity<Void> deleteCustomer(@PathVariable Long id) {
         log.debug("REST request to delete Customer : {}", id);

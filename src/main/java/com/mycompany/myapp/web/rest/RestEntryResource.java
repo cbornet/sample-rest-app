@@ -2,8 +2,6 @@ package com.mycompany.myapp.web.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.thymeleaf.TemplateEngine;
@@ -20,8 +18,8 @@ public class RestEntryResource {
     }
 
     @GetMapping("/api")
-    public RestResponse getEntities() throws IOException {
+    public RestResponse<Void> getEntities() throws IOException {
         String content = templateEngine.process("oai/entities.json", new Context());
-        return new RestResponse(null, mapper.readTree(content));
+        return new RestResponse<>(null, mapper.readTree(content));
     }
 }

@@ -38,7 +38,6 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
  */
 @RestController
 @RequestMapping(path = "/api", produces = "application/json")
-@Secured(AuthoritiesConstants.ADMIN)
 @Transactional
 public class OrderResource {
     private final Logger log = LoggerFactory.getLogger(OrderResource.class);
@@ -86,6 +85,7 @@ public class OrderResource {
      * or with status {@code 400 (Bad Request)} if the order is not valid,
      * or with status {@code 500 (Internal Server Error)} if the order couldn't be updated.
      */
+    @Secured(AuthoritiesConstants.ADMIN)
     @PutMapping("/orders")
     public ResponseEntity<Order> updateOrder(@RequestBody Order order) {
         log.debug("REST request to update Order : {}", order);

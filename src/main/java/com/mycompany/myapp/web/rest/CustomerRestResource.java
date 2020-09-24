@@ -37,12 +37,12 @@ public class CustomerRestResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of customers in body.
      */
     @GetMapping("/customers")
-    public RestResponse getAllCustomers() throws IOException {
+    public RestResponse<List<Customer>> getAllCustomers() throws IOException {
         final List<Customer> customers = customerResource.getAllCustomers();
         Context context = new Context();
         context.setVariable("customers", customers);
         String content = templateEngine.process("oai/customers.json", context);
-        return new RestResponse(customers, mapper.readTree(content));
+        return new RestResponse<>(customers, mapper.readTree(content));
     }
 
     /**
@@ -52,11 +52,11 @@ public class CustomerRestResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the customer, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/customers/{id}")
-    public RestResponse getCustomer(@PathVariable Long id) throws JsonProcessingException {
+    public RestResponse<Customer> getCustomer(@PathVariable Long id) throws JsonProcessingException {
         final Customer customer = customerResource.getCustomer(id).getBody();
         Context context = new Context();
         context.setVariable("customer", customer);
         String content = templateEngine.process("oai/customer.json", context);
-        return new RestResponse(customer, mapper.readTree(content));
+        return new RestResponse<>(customer, mapper.readTree(content));
     }
 }
