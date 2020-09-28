@@ -40,8 +40,9 @@
             "type": "object",
             "properties": {
               "id": {
-                "type": "integer",
+                "type": "integer"[# th:if="${order.customer}"],
                 "example": [( ${order.customer.id} )]
+[/]
               }
             }
           }

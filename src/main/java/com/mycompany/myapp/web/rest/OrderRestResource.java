@@ -60,12 +60,13 @@ public class OrderRestResource {
      * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with body the new order, or with status {@code 400 (Bad Request)} if the order has already an ID.
      */
     @PostMapping("/orders")
-    public RestResponse<Order> createOrder(@RequestBody Order order) throws JsonProcessingException, URISyntaxException {
-        final Order createdOrder = orderResource.createOrder(order).getBody();
+    public ResponseEntity<RestResponse<Order>> createOrder(@RequestBody Order order) throws JsonProcessingException, URISyntaxException {
+        final ResponseEntity<Order> response = orderResource.createOrder(order);
+        final Order createdOrder = response.getBody();
         Context context = new Context();
         context.setVariable("order", createdOrder);
         String content = templateEngine.process("oai/order.json", context);
-        return new RestResponse<>(createdOrder, mapper.readTree(content));
+        return RestResponse.wrapResponse(response, mapper.readTree(content));
     }
 
     /**
@@ -130,12 +131,13 @@ public class OrderRestResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the order, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/orders/{id}")
-    public RestResponse<Order> getOrder(@PathVariable Long id) throws JsonProcessingException {
-        final Order order = orderResource.getOrder(id).getBody();
+    public ResponseEntity<RestResponse<Order>> getOrder(@PathVariable Long id) throws JsonProcessingException {
+        final ResponseEntity<Order> response = orderResource.getOrder(id);
+        final Order order = response.getBody();
         Context context = new Context();
         context.setVariable("order", order);
         String content = templateEngine.process("oai/order.json", context);
-        return new RestResponse<>(order, mapper.readTree(content));
+        return RestResponse.wrapResponse(response, mapper.readTree(content));
     }
 
     /**
@@ -145,10 +147,10 @@ public class OrderRestResource {
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/orders/{id}")
-    public RestResponse<Void> deleteOrder(@PathVariable Long id) throws JsonProcessingException {
-        orderResource.deleteOrder(id);
+    public ResponseEntity<RestResponse<Void>> deleteOrder(@PathVariable Long id) throws JsonProcessingException {
+        final ResponseEntity<Void> response = orderResource.deleteOrder(id);
         String content = templateEngine.process("oai/entities.json", new Context());
-        return new RestResponse<>(null, mapper.readTree(content));
+        return RestResponse.wrapResponse(response, mapper.readTree(content));
     }
 
     @GetMapping("/customers/{id}/orders")

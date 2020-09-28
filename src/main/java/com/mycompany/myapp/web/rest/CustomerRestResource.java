@@ -52,11 +52,12 @@ public class CustomerRestResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the customer, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/customers/{id}")
-    public RestResponse<Customer> getCustomer(@PathVariable Long id) throws JsonProcessingException {
-        final Customer customer = customerResource.getCustomer(id).getBody();
+    public ResponseEntity<RestResponse<Customer>> getCustomer(@PathVariable Long id) throws JsonProcessingException {
+        final ResponseEntity<Customer> response = customerResource.getCustomer(id);
+        final Customer customer = response.getBody();
         Context context = new Context();
         context.setVariable("customer", customer);
         String content = templateEngine.process("oai/customer.json", context);
-        return new RestResponse<>(customer, mapper.readTree(content));
+        return RestResponse.wrapResponse(response, mapper.readTree(content));
     }
 }
