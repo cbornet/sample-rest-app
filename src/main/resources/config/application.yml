@@ -71,6 +71,8 @@ spring:
     jpa:
       repositories:
         bootstrap-mode: deferred
+  jackson:
+    default-property-inclusion: non_null
   jpa:
     open-in-view: false
     properties:

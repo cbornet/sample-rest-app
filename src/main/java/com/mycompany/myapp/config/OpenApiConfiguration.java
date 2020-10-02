@@ -5,6 +5,8 @@ import static springfox.documentation.builders.PathSelectors.regex;
 import io.github.jhipster.config.JHipsterConstants;
 import io.github.jhipster.config.JHipsterProperties;
 import io.github.jhipster.config.apidoc.customizer.SpringfoxCustomizer;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.parser.OpenAPIV3Parser;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -59,5 +61,10 @@ public class OpenApiConfiguration {
             .apis(RequestHandlerSelectors.basePackage("com.mycompany.myapp.web.api"))
             .paths(regex(properties.getDefaultIncludePattern()))
             .build();
+    }
+
+    @Bean
+    OpenAPI openAPI() {
+        return new OpenAPIV3Parser().read("templates/oai/springfox.json");
     }
 }

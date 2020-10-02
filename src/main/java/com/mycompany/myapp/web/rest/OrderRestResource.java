@@ -1,13 +1,25 @@
 package com.mycompany.myapp.web.rest;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import static com.mycompany.myapp.web.rest.OhmResponse.addControl;
+import static com.mycompany.myapp.web.rest.OhmResponse.addPaginationControls;
+import static io.swagger.v3.oas.models.PathItem.HttpMethod.DELETE;
+import static io.swagger.v3.oas.models.PathItem.HttpMethod.GET;
+import static io.swagger.v3.oas.models.PathItem.HttpMethod.POST;
+import static io.swagger.v3.oas.models.PathItem.HttpMethod.PUT;
+
 import com.mycompany.myapp.domain.Order;
 import com.mycompany.myapp.repository.OrderRepository;
-import java.io.IOException;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.Operation;
+import io.swagger.v3.oas.models.media.Content;
+import io.swagger.v3.oas.models.media.IntegerSchema;
+import io.swagger.v3.oas.models.media.MediaType;
+import io.swagger.v3.oas.models.media.NumberSchema;
+import io.swagger.v3.oas.models.media.ObjectSchema;
 import java.net.URISyntaxException;
+import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -24,8 +36,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
-import org.thymeleaf.context.Context;
-import org.thymeleaf.spring5.SpringTemplateEngine;
 
 /**
  * REST controller for managing {@link com.mycompany.myapp.domain.Order}.
@@ -38,19 +48,12 @@ public class OrderRestResource {
 
     private final OrderRepository orderRepository;
     private final OrderResource orderResource;
-    private final SpringTemplateEngine templateEngine;
-    private final ObjectMapper mapper;
+    private final OpenAPI openAPI;
 
-    public OrderRestResource(
-        OrderRepository orderRepository,
-        OrderResource orderResource,
-        SpringTemplateEngine templateEngine,
-        ObjectMapper mapper
-    ) {
+    public OrderRestResource(OrderRepository orderRepository, OrderResource orderResource, OpenAPI openAPI) {
         this.orderRepository = orderRepository;
         this.orderResource = orderResource;
-        this.templateEngine = templateEngine;
-        this.mapper = mapper;
+        this.openAPI = openAPI;
     }
 
     /**
@@ -60,13 +63,9 @@ public class OrderRestResource {
      * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with body the new order, or with status {@code 400 (Bad Request)} if the order has already an ID.
      */
     @PostMapping("/orders")
-    public ResponseEntity<RestResponse<Order>> createOrder(@RequestBody Order order) throws JsonProcessingException, URISyntaxException {
+    public ResponseEntity<OhmResponse<Order>> createOrder(@RequestBody Order order) throws URISyntaxException {
         final ResponseEntity<Order> response = orderResource.createOrder(order);
-        final Order createdOrder = response.getBody();
-        Context context = new Context();
-        context.setVariable("order", createdOrder);
-        String content = templateEngine.process("oai/order.json", context);
-        return RestResponse.wrapResponse(response, mapper.readTree(content));
+        return OhmResponse.wrapResponse(response, getOrderControls(order));
     }
 
     /**
@@ -78,7 +77,7 @@ public class OrderRestResource {
      * or with status {@code 500 (Internal Server Error)} if the order couldn't be updated.
      */
     @PutMapping("/orders/{id}")
-    public RestResponse<Order> updateOrder(@PathVariable Long id, @RequestBody Order order) throws JsonProcessingException {
+    public OhmResponse<Order> updateOrder(@PathVariable Long id, @RequestBody Order order) {
         log.debug("REST request to update Order : {}", order);
         order.setId(id);
         orderRepository
@@ -90,10 +89,7 @@ public class OrderRestResource {
                 }
             );
         Order result = orderRepository.save(order);
-        Context context = new Context();
-        context.setVariable("order", result);
-        String content = templateEngine.process("oai/order.json", context);
-        return new RestResponse<>(result, mapper.readTree(content));
+        return new OhmResponse<>(result, getOrderControls(order));
     }
 
     /**
@@ -103,25 +99,12 @@ public class OrderRestResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of orders in body.
      */
     @GetMapping("/orders")
-    public RestResponse<List<Order>> getAllOrders(Pageable pageable) throws IOException {
+    public OhmResponse<List<Order>> getAllOrders(Pageable pageable) {
         log.debug("REST request to get a page of Orders");
         final Page<Order> page = orderRepository.findAll(pageable);
-        Context context = new Context();
-        context.setVariable("orders", page.getContent());
-        context.setVariable("totalPages", page.getTotalPages());
-        context.setVariable("currentPage", page.getNumber());
-        context.setVariable("resourceUrl", "/api/orders");
-        context.setVariable("pageSize", pageable.getPageSize());
-        context.setVariable("totalElements", page.getTotalElements());
-        final String sortParam = pageable
-            .getSort()
-            .stream()
-            .map(order -> order.getProperty() + "," + order.getDirection())
-            .collect(Collectors.joining("&"));
-        context.setVariable("sortQueryParam", sortParam.isEmpty() ? "" : "&sort=" + sortParam);
+        OpenAPI controls = getOrdersControls(page, true);
 
-        String content = templateEngine.process("oai/orders.json", context);
-        return new RestResponse<>(page.getContent(), mapper.readTree(content));
+        return new OhmResponse<>(page.getContent(), controls);
     }
 
     /**
@@ -131,13 +114,10 @@ public class OrderRestResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the order, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/orders/{id}")
-    public ResponseEntity<RestResponse<Order>> getOrder(@PathVariable Long id) throws JsonProcessingException {
+    public ResponseEntity<OhmResponse<Order>> getOrder(@PathVariable Long id) {
         final ResponseEntity<Order> response = orderResource.getOrder(id);
         final Order order = response.getBody();
-        Context context = new Context();
-        context.setVariable("order", order);
-        String content = templateEngine.process("oai/order.json", context);
-        return RestResponse.wrapResponse(response, mapper.readTree(content));
+        return OhmResponse.wrapResponse(response, getOrderControls(order));
     }
 
     /**
@@ -147,25 +127,76 @@ public class OrderRestResource {
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/orders/{id}")
-    public ResponseEntity<RestResponse<Void>> deleteOrder(@PathVariable Long id) throws JsonProcessingException {
+    public ResponseEntity<OhmResponse<Void>> deleteOrder(@PathVariable Long id) {
         final ResponseEntity<Void> response = orderResource.deleteOrder(id);
-        String content = templateEngine.process("oai/entities.json", new Context());
-        return RestResponse.wrapResponse(response, mapper.readTree(content));
+        OpenAPI controls = new OpenAPI();
+        addControl(controls, openAPI, "/api/customers", GET).summary("Get all customers");
+        addControl(controls, openAPI, "/api/orders", GET).summary("Get all orders");
+        return OhmResponse.wrapResponse(response, controls);
     }
 
     @GetMapping("/customers/{id}/orders")
-    public RestResponse<List<Order>> getCustomerOrders(@PathVariable Long id, Pageable pageable) throws JsonProcessingException {
+    public OhmResponse<List<Order>> getCustomerOrders(@PathVariable Long id, Pageable pageable) {
         log.debug("REST request to get orders of Customer : {}", id);
         final Page<Order> page = orderRepository.findAllByCustomerId(id, pageable);
 
-        Context context = new Context();
-        context.setVariable("orders", page.getContent());
-        context.setVariable("totalPages", page.getTotalPages());
-        context.setVariable("currentPage", page.getNumber());
-        context.setVariable("resourceUrl", "/api/customers/" + id + "/orders");
-        context.setVariable("totalElements", page.getTotalElements());
+        final OpenAPI controls = getOrdersControls(page, false);
+        return new OhmResponse<>(page.getContent(), controls);
+    }
 
-        String content = templateEngine.process("oai/orders.json", context);
-        return new RestResponse<>(page.getContent(), mapper.readTree(content));
+    private OpenAPI getOrderControls(Order order) {
+        var controls = new OpenAPI();
+
+        var orderSchema = new ObjectSchema()
+            .addProperties("cost", new NumberSchema().example(order.getCost()))
+            .addProperties(
+                "customer",
+                new ObjectSchema()
+                .addProperties("id", new IntegerSchema().example(order.getCustomer() != null ? order.getCustomer().getId() : null))
+            );
+        var requestBody = new io.swagger.v3.oas.models.parameters.RequestBody()
+        .content(new Content().addMediaType("application/ohm+json", new MediaType().schema(orderSchema)));
+        addControl(controls, openAPI, "/api/orders/{id}", PUT, Map.of("id", order.getId()), requestBody)
+            .summary(String.format("Delete order %d", order.getId()));
+        if (order.getId() > 100) {
+            addControl(controls, openAPI, "/api/orders/{id}", DELETE, Map.of("id", order.getId()))
+                .summary(String.format("Delete order %d", order.getId()));
+        }
+        if (order.getCustomer() != null) {
+            addControl(controls, openAPI, "/api/customers/{id}", GET, Map.of("id", order.getCustomer().getId()))
+                .summary(String.format("Get order %d customer (%d)", order.getId(), order.getCustomer().getId()));
+        }
+        addControl(controls, openAPI, "/api/orders", GET).summary("Get all orders");
+        return controls;
+    }
+
+    private OpenAPI getOrdersControls(Page<Order> page, boolean showCreateControl) {
+        OpenAPI controls = new OpenAPI();
+
+        addControl(controls, openAPI, "/api", GET).summary("Go to home");
+
+        final Operation operation = addControl(controls, openAPI, "/api/orders", GET).summary("Get all orders");
+
+        addPaginationControls(controls, "/api/orders", operation, page);
+
+        page
+            .get()
+            .forEach(
+                order ->
+                    addControl(controls, openAPI, "/api/orders/{id}", GET, Map.of("id", order.getId()))
+                        .summary(String.format("Get order %d", order.getId()))
+            );
+        addControl(controls, openAPI, "/api/orders", GET).summary("Get all orders");
+        if (showCreateControl) {
+            if (page.getTotalElements() < 200) {
+                var orderSchema = new ObjectSchema()
+                    .addProperties("cost", new NumberSchema())
+                    .addProperties("customer", new ObjectSchema().addProperties("id", new IntegerSchema()));
+                var requestBody = new io.swagger.v3.oas.models.parameters.RequestBody()
+                .content(new Content().addMediaType("application/ohm+json", new MediaType().schema(orderSchema)));
+                addControl(controls, openAPI, "/api/orders", POST, new HashMap<>(), requestBody).summary("Create order");
+            }
+        }
+        return controls;
     }
 }
