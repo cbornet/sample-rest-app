@@ -145,7 +145,7 @@ jhipster:
   mail:
     from: rest@localhost
   api-docs:
-    default-include-pattern: /api/.*
+    default-include-pattern: /api/.*|/api
     title: rest API
     description: rest API documentation
     version: 0.0.1

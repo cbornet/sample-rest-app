@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -46,6 +47,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import springfox.documentation.oas.mappers.ServiceModelToOpenApiMapper;
+import springfox.documentation.service.Documentation;
+import springfox.documentation.spring.web.DocumentationCache;
+import springfox.documentation.spring.web.plugins.Docket;
 
 /**
  * REST controller for managing {@link com.mycompany.myapp.domain.Order}.
@@ -62,11 +67,15 @@ public class OrderResource {
     private String applicationName;
 
     private final OrderRepository orderRepository;
-    private final OpenAPI openAPI;
+    private final DocumentationCache documentationCache;
+    private final ServiceModelToOpenApiMapper mapper;
 
-    public OrderResource(OrderRepository orderRepository, OpenAPI openAPI) {
+    private OpenAPI openAPI;
+
+    public OrderResource(OrderRepository orderRepository, DocumentationCache documentationCache, ServiceModelToOpenApiMapper mapper) {
         this.orderRepository = orderRepository;
-        this.openAPI = openAPI;
+        this.documentationCache = documentationCache;
+        this.mapper = mapper;
     }
 
     /**
@@ -191,8 +200,8 @@ public class OrderResource {
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
             .build();
         OpenAPI controls = new OpenAPI();
-        addControl(controls, openAPI, "/api/customers", GET).summary("Get all customers");
-        addControl(controls, openAPI, "/api/orders", GET).summary("Get all orders");
+        addControl(controls, getSpringfoxOpenAPI(), "/api/customers", GET).summary("Get all customers");
+        addControl(controls, getSpringfoxOpenAPI(), "/api/orders", GET).summary("Get all orders");
         return OhmResponse.wrapResponse(response, controls);
     }
 
@@ -217,26 +226,26 @@ public class OrderResource {
             );
         var requestBody = new io.swagger.v3.oas.models.parameters.RequestBody()
         .content(new Content().addMediaType("application/ohm+json", new MediaType().schema(orderSchema)));
-        addControl(controls, openAPI, "/api/orders/{id}", PUT, Map.of("id", order.getId()), requestBody)
+        addControl(controls, getSpringfoxOpenAPI(), "/api/orders/{id}", PUT, Map.of("id", order.getId()), requestBody)
             .summary(String.format("Delete order %d", order.getId()));
         if (order.getId() > 100) {
-            addControl(controls, openAPI, "/api/orders/{id}", DELETE, Map.of("id", order.getId()))
+            addControl(controls, getSpringfoxOpenAPI(), "/api/orders/{id}", DELETE, Map.of("id", order.getId()))
                 .summary(String.format("Delete order %d", order.getId()));
         }
         if (order.getCustomer() != null) {
-            addControl(controls, openAPI, "/api/customers/{id}", GET, Map.of("id", order.getCustomer().getId()))
+            addControl(controls, getSpringfoxOpenAPI(), "/api/customers/{id}", GET, Map.of("id", order.getCustomer().getId()))
                 .summary(String.format("Get order %d customer (%d)", order.getId(), order.getCustomer().getId()));
         }
-        addControl(controls, openAPI, "/api/orders", GET).summary("Get all orders");
+        addControl(controls, getSpringfoxOpenAPI(), "/api/orders", GET).summary("Get all orders");
         return controls;
     }
 
     private OpenAPI getOrdersControls(Page<Order> page, boolean showCreateControl) {
         OpenAPI controls = new OpenAPI();
 
-        addControl(controls, openAPI, "/api", GET).summary("Go to home");
+        addControl(controls, getSpringfoxOpenAPI(), "/api", GET).summary("Go to home");
 
-        final Operation operation = addControl(controls, openAPI, "/api/orders", GET).summary("Get all orders");
+        final Operation operation = addControl(controls, getSpringfoxOpenAPI(), "/api/orders", GET).summary("Get all orders");
 
         if (operation != null) {
             addPaginationControls(controls, "/api/orders", operation, page);
@@ -246,10 +255,10 @@ public class OrderResource {
             .get()
             .forEach(
                 order ->
-                    addControl(controls, openAPI, "/api/orders/{id}", GET, Map.of("id", order.getId()))
+                    addControl(controls, getSpringfoxOpenAPI(), "/api/orders/{id}", GET, Map.of("id", order.getId()))
                         .summary(String.format("Get order %d", order.getId()))
             );
-        addControl(controls, openAPI, "/api/orders", GET).summary("Get all orders");
+        addControl(controls, getSpringfoxOpenAPI(), "/api/orders", GET).summary("Get all orders");
         if (showCreateControl) {
             if (page.getTotalElements() < 200) {
                 var orderSchema = new ObjectSchema()
@@ -257,9 +266,17 @@ public class OrderResource {
                     .addProperties("customer", new ObjectSchema().addProperties("id", new IntegerSchema()));
                 var requestBody = new io.swagger.v3.oas.models.parameters.RequestBody()
                 .content(new Content().addMediaType("application/ohm+json", new MediaType().schema(orderSchema)));
-                addControl(controls, openAPI, "/api/orders", POST, new HashMap<>(), requestBody).summary("Create order");
+                addControl(controls, getSpringfoxOpenAPI(), "/api/orders", POST, new HashMap<>(), requestBody).summary("Create order");
             }
         }
         return controls;
+    }
+
+    private OpenAPI getSpringfoxOpenAPI() {
+        if (openAPI == null) {
+            Documentation documentation = documentationCache.documentationByGroup(Docket.DEFAULT_GROUP_NAME);
+            openAPI = mapper.mapDocumentation(documentation);
+        }
+        return openAPI;
     }
 }

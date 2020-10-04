@@ -11,20 +11,31 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import javax.annotation.PostConstruct;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import springfox.documentation.builders.RequestHandlerSelectors;
+import springfox.documentation.oas.mappers.ServiceModelToOpenApiMapper;
 import springfox.documentation.service.ApiInfo;
 import springfox.documentation.service.Contact;
+import springfox.documentation.service.Documentation;
 import springfox.documentation.spi.DocumentationType;
+import springfox.documentation.spring.web.DocumentationCache;
 import springfox.documentation.spring.web.plugins.Docket;
 
 @Configuration
 @Profile(JHipsterConstants.SPRING_PROFILE_API_DOCS)
 public class OpenApiConfiguration {
+    private final DocumentationCache documentationCache;
+    private final ServiceModelToOpenApiMapper mapper;
+
+    public OpenApiConfiguration(DocumentationCache documentationCache, ServiceModelToOpenApiMapper mapper) {
+        this.documentationCache = documentationCache;
+        this.mapper = mapper;
+    }
 
     @Bean
     public SpringfoxCustomizer noApiFirstCustomizer() {
@@ -61,10 +72,5 @@ public class OpenApiConfiguration {
             .apis(RequestHandlerSelectors.basePackage("com.mycompany.myapp.web.api"))
             .paths(regex(properties.getDefaultIncludePattern()))
             .build();
-    }
-
-    @Bean
-    OpenAPI openAPI() {
-        return new OpenAPIV3Parser().read("templates/oai/springfox.json");
     }
 }
