@@ -227,7 +227,7 @@ public class OrderResource {
         var requestBody = new io.swagger.v3.oas.models.parameters.RequestBody()
         .content(new Content().addMediaType("application/ohm+json", new MediaType().schema(orderSchema)));
         addControl(controls, getSpringfoxOpenAPI(), "/api/orders/{id}", PUT, Map.of("id", order.getId()), requestBody)
-            .summary(String.format("Update  order %d", order.getId()));
+            .summary(String.format("Update order %d", order.getId()));
         if (order.getId() > 100) {
             addControl(controls, getSpringfoxOpenAPI(), "/api/orders/{id}", DELETE, Map.of("id", order.getId()))
                 .summary(String.format("Delete order %d", order.getId()));
