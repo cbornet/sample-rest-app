@@ -1,7 +1,6 @@
 package com.mycompany.myapp.web.rest;
 
-import static com.mycompany.myapp.web.rest.OhmResponse.addControl;
-import static com.mycompany.myapp.web.rest.OhmResponse.addPaginationControls;
+import static com.mycompany.myapp.web.rest.OhmResponse.control;
 import static io.swagger.v3.oas.models.PathItem.HttpMethod.DELETE;
 import static io.swagger.v3.oas.models.PathItem.HttpMethod.GET;
 import static io.swagger.v3.oas.models.PathItem.HttpMethod.POST;
@@ -15,7 +14,6 @@ import com.mycompany.myapp.web.rest.errors.BadRequestAlertException;
 import io.github.jhipster.web.util.HeaderUtil;
 import io.github.jhipster.web.util.PaginationUtil;
 import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.media.Content;
 import io.swagger.v3.oas.models.media.IntegerSchema;
 import io.swagger.v3.oas.models.media.MediaType;
@@ -23,12 +21,9 @@ import io.swagger.v3.oas.models.media.NumberSchema;
 import io.swagger.v3.oas.models.media.ObjectSchema;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -96,11 +91,11 @@ public class OrderResource {
         }
         order.setProduct(new Faker().commerce().productName());
         Order result = orderRepository.save(order);
-        final ResponseEntity<Order> response = ResponseEntity
+        OhmResponse<Order> ohmResponse = getOrderResponse(result);
+        return ResponseEntity
             .created(new URI("/api/orders/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
-            .body(result);
-        return OhmResponse.wrapResponse(response, getOrderControls(order));
+            .body(ohmResponse);
     }
 
     /**
@@ -128,7 +123,7 @@ public class OrderResource {
     /**
      * {@code PUT  /orders/:id} : Updates an existing order.
      *
-     * @param id the id of the order to update.
+     * @param id    the id of the order to update.
      * @param order the order to update.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated order,
      * or with status {@code 400 (Bad Request)} if the order is not valid,
@@ -147,7 +142,7 @@ public class OrderResource {
                 }
             );
         Order result = orderRepository.save(order);
-        return new OhmResponse<>(result, getOrderControls(order));
+        return getOrderResponse(result);
     }
 
     /**
@@ -161,10 +156,8 @@ public class OrderResource {
         log.debug("REST request to get a page of Orders");
         Page<Order> page = orderRepository.findAll(pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
-        ResponseEntity<List<Order>> response = ResponseEntity.ok().headers(headers).body(page.getContent());
-        OpenAPI controls = getOrdersControls(page, true);
-
-        return OhmResponse.wrapResponse(response, controls);
+        OhmResponse<List<Order>> ohmResponse = getOrdersResponse(page, true);
+        return ResponseEntity.ok().headers(headers).body(ohmResponse);
     }
 
     /**
@@ -178,7 +171,7 @@ public class OrderResource {
         log.debug("REST request to get Order : {}", id);
         return orderRepository
             .findById(id)
-            .map(order -> new OhmResponse<>(order, getOrderControls(order)))
+            .map(this::getOrderResponse)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
@@ -186,7 +179,7 @@ public class OrderResource {
      * {@code DELETE  /orders/:id} : delete the "id" order.
      *
      * @param id the id of the order to delete.
-     * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)}.
      */
     @DeleteMapping("/orders/{id}")
     public ResponseEntity<OhmResponse<Void>> deleteOrder(@PathVariable Long id) {
@@ -195,27 +188,27 @@ public class OrderResource {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Can't delete orders with id <= 100");
         }
         orderRepository.deleteById(id);
-        ResponseEntity<Void> response = ResponseEntity
+        getSpringfoxOpenAPI();
+        OhmResponse<Void> ohmResponse = OhmResponse
             .noContent()
+            .addControl(control(openAPI, GET, "/api/customers").summary("Get all customers"))
+            .addControl(control(openAPI, GET, "/api/orders").summary("Get all orders"));
+        return ResponseEntity
+            .ok()
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
-            .build();
-        OpenAPI controls = new OpenAPI();
-        addControl(controls, getSpringfoxOpenAPI(), "/api/customers", GET).summary("Get all customers");
-        addControl(controls, getSpringfoxOpenAPI(), "/api/orders", GET).summary("Get all orders");
-        return OhmResponse.wrapResponse(response, controls);
+            .body(ohmResponse);
     }
 
     @GetMapping("/customers/{id}/orders")
     public OhmResponse<List<Order>> getCustomerOrders(@PathVariable Long id, Pageable pageable) {
         log.debug("REST request to get orders of Customer : {}", id);
         final Page<Order> page = orderRepository.findAllByCustomerId(id, pageable);
-
-        final OpenAPI controls = getOrdersControls(page, false);
-        return new OhmResponse<>(page.getContent(), controls);
+        return getOrdersResponse(page, false);
     }
 
-    private OpenAPI getOrderControls(Order order) {
-        var controls = new OpenAPI();
+    private OhmResponse<Order> getOrderResponse(Order order) {
+        getSpringfoxOpenAPI();
+        OhmResponse<Order> ohmResponse = OhmResponse.of(order);
 
         var orderSchema = new ObjectSchema()
             .addProperties("cost", new NumberSchema().example(order.getCost()))
@@ -224,41 +217,51 @@ public class OrderResource {
                 new ObjectSchema()
                 .addProperties("id", new IntegerSchema().example(order.getCustomer() != null ? order.getCustomer().getId() : null))
             );
+
         var requestBody = new io.swagger.v3.oas.models.parameters.RequestBody()
-        .content(new Content().addMediaType("application/ohm+json", new MediaType().schema(orderSchema)));
-        addControl(controls, getSpringfoxOpenAPI(), "/api/orders/{id}", PUT, Map.of("id", order.getId()), requestBody)
-            .summary(String.format("Update order %d", order.getId()));
+        .content(new Content().addMediaType("application/json", new MediaType().schema(orderSchema)));
+
+        ohmResponse.addControl(
+            control(openAPI, PUT, "/api/orders/{id}")
+                .parameter("id", order.getId())
+                .requestBody(requestBody)
+                .summary(String.format("Update order %d", order.getId()))
+        );
         if (order.getId() > 100) {
-            addControl(controls, getSpringfoxOpenAPI(), "/api/orders/{id}", DELETE, Map.of("id", order.getId()))
-                .summary(String.format("Delete order %d", order.getId()));
+            ohmResponse.addControl(
+                control(openAPI, DELETE, "/api/orders/{id}")
+                    .parameter("id", order.getId())
+                    .summary(String.format("Delete order %d", order.getId()))
+            );
         }
         if (order.getCustomer() != null) {
-            addControl(controls, getSpringfoxOpenAPI(), "/api/customers/{id}", GET, Map.of("id", order.getCustomer().getId()))
-                .summary(String.format("Get order %d customer (%d)", order.getId(), order.getCustomer().getId()));
+            ohmResponse.addControl(
+                control(openAPI, GET, "/api/customers/{id}")
+                    .parameter("id", order.getCustomer().getId())
+                    .summary(String.format("Get order %d customer (%d)", order.getId(), order.getCustomer().getId()))
+            );
         }
-        addControl(controls, getSpringfoxOpenAPI(), "/api/orders", GET).summary("Get all orders");
-        return controls;
+        return ohmResponse.addControl(control(openAPI, GET, "/api/orders").summary("Get all orders"));
     }
 
-    private OpenAPI getOrdersControls(Page<Order> page, boolean showCreateControl) {
-        OpenAPI controls = new OpenAPI();
-
-        addControl(controls, getSpringfoxOpenAPI(), "/api", GET).summary("Go to home");
-
-        final Operation operation = addControl(controls, getSpringfoxOpenAPI(), "/api/orders", GET).summary("Get all orders");
-
-        if (operation != null) {
-            addPaginationControls(controls, "/api/orders", operation, page);
-        }
+    private OhmResponse<List<Order>> getOrdersResponse(Page<Order> page, boolean showCreateControl) {
+        getSpringfoxOpenAPI();
+        OhmResponse<List<Order>> ohmResponse = OhmResponse
+            .of(page.getContent())
+            .addControl(control(openAPI, GET, "/api").summary("Go to home"))
+            .addPaginationControls(control(openAPI, GET, "/api/orders").summary("Get orders"), page);
 
         page
             .get()
             .forEach(
                 order ->
-                    addControl(controls, getSpringfoxOpenAPI(), "/api/orders/{id}", GET, Map.of("id", order.getId()))
-                        .summary(String.format("Get order %d", order.getId()))
+                    ohmResponse.addControl(
+                        control(openAPI, GET, "/api/orders/{id}")
+                            .parameter("id", order.getId())
+                            .summary(String.format("Get order %d", order.getId()))
+                    )
             );
-        addControl(controls, getSpringfoxOpenAPI(), "/api/orders", GET).summary("Get all orders");
+
         if (showCreateControl) {
             if (page.getTotalElements() < 200) {
                 var orderSchema = new ObjectSchema()
@@ -266,17 +269,16 @@ public class OrderResource {
                     .addProperties("customer", new ObjectSchema().addProperties("id", new IntegerSchema()));
                 var requestBody = new io.swagger.v3.oas.models.parameters.RequestBody()
                 .content(new Content().addMediaType("application/ohm+json", new MediaType().schema(orderSchema)));
-                addControl(controls, getSpringfoxOpenAPI(), "/api/orders", POST, new HashMap<>(), requestBody).summary("Create order");
+                ohmResponse.addControl(control(openAPI, POST, "/api/orders").requestBody(requestBody).summary("Create order"));
             }
         }
-        return controls;
+        return ohmResponse;
     }
 
-    private OpenAPI getSpringfoxOpenAPI() {
+    private void getSpringfoxOpenAPI() {
         if (openAPI == null) {
             Documentation documentation = documentationCache.documentationByGroup(Docket.DEFAULT_GROUP_NAME);
             openAPI = mapper.mapDocumentation(documentation);
         }
-        return openAPI;
     }
 }
