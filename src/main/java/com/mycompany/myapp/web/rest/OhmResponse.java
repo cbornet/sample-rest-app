@@ -4,11 +4,21 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.Paths;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.media.ArraySchema;
+import io.swagger.v3.oas.models.media.IntegerSchema;
+import io.swagger.v3.oas.models.media.Schema;
+import io.swagger.v3.oas.models.media.StringSchema;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.parameters.RequestBody;
+import io.swagger.v3.oas.models.responses.ApiResponse;
+import io.swagger.v3.oas.models.responses.ApiResponses;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -27,6 +37,7 @@ public class OhmResponse<T> {
     public OhmResponse(T content, OpenAPI controls) {
         this.content = content;
         this.controls = controls;
+        this.controls.info(new Info().title("").version(""));
     }
 
     public T getContent() {
@@ -75,60 +86,75 @@ public class OhmResponse<T> {
             .stream()
             .filter(parameter -> !Set.of("page", "size", "sort").contains(parameter.getName()))
             .forEach(op::addParametersItem);
+
+        IntegerSchema schema = new IntegerSchema();
+        schema.addEnumItemObject(page.getSize());
+        op.addParametersItem(new Parameter().name("size").in("query").schema(schema).required(true));
+
         if (controls.getPaths() == null) {
             controls.paths(new Paths());
         }
         final Paths paths = controls.getPaths();
-        final UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder
-            .fromUriString(control.getPath())
-            .replaceQueryParam("size", page.getSize());
+        final UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromUriString(control.getPath());
 
-        page
-            .getSort()
-            .stream()
-            .map(sort -> sort.getProperty() + "," + sort.getDirection())
-            .forEach(sort -> uriComponentsBuilder.queryParam("sort", sort));
+        if (!page.getSort().isEmpty()) {
+            List<String> sorts = page
+                .getSort()
+                .stream()
+                .map(sort -> sort.getProperty() + "," + sort.getDirection())
+                .collect(Collectors.toList());
+            ArraySchema sortSchema = new ArraySchema();
+            StringSchema items = new StringSchema();
+            sorts.forEach(items::addEnumItem);
+            sortSchema.setItems(items);
+            sortSchema.setUniqueItems(true);
+            sortSchema.minItems(sorts.size());
+            sortSchema.maxItems(sorts.size());
+            sortSchema.setDefault(sorts);
+            op.addParametersItem(new Parameter().name("sort").in("query").schema(sortSchema).required(true));
+        }
 
         if (page.getTotalPages() > 1) {
-            paths.put(
-                uriComponentsBuilder.replaceQueryParam("page", 0).toUriString(),
-                new PathItem()
-                .get(
-                        new Operation()
-                            .parameters(op.getParameters())
-                            .summary(String.format("%s [First page (1/%s)]", summary, page.getTotalPages()))
-                    )
-            );
+            PathItem pageItem = getPagePathItem(op, String.format("%s [First page (1/%s)]", summary, page.getTotalPages()), 0);
+            paths.put(control.getPath() + "#first", pageItem);
         }
         if (page.getNumber() > 0) {
-            paths.put(
-                uriComponentsBuilder.replaceQueryParam("page", page.getNumber() - 1).toUriString(),
-                new PathItem().get(op.summary(String.format("%s [Previous page (%s/%s)]", summary, page.getNumber(), page.getTotalPages())))
+            PathItem pageItem = getPagePathItem(
+                op,
+                String.format("%s [Previous page (%s/%s)]", summary, page.getNumber(), page.getTotalPages()),
+                page.getNumber() - 1
             );
+            paths.put(control.getPath() + "#previous", pageItem);
         }
         if (page.getNumber() < page.getTotalPages() - 1) {
-            paths.put(
-                uriComponentsBuilder.replaceQueryParam("page", page.getNumber() + 1).toUriString(),
-                new PathItem()
-                .get(
-                        new Operation()
-                            .parameters(op.getParameters())
-                            .summary(String.format("%s [Next page (%s/%s)]", summary, page.getNumber() + 2, page.getTotalPages()))
-                    )
+            PathItem pageItem = getPagePathItem(
+                op,
+                String.format("%s [Next page (%s/%s)]", summary, page.getNumber() + 2, page.getTotalPages()),
+                page.getNumber() + 1
             );
+            paths.put(control.getPath() + "#next", pageItem);
         }
         if (page.getTotalPages() > 1) {
-            paths.put(
-                uriComponentsBuilder.replaceQueryParam("page", page.getTotalPages() - 1).toUriString(),
-                new PathItem()
-                .get(
-                        new Operation()
-                            .parameters(op.getParameters())
-                            .summary(String.format("%s [Last page (%s/%s)]", summary, page.getTotalPages(), page.getTotalPages()))
-                    )
+            PathItem pageItem = getPagePathItem(
+                op,
+                String.format("%s [Last page (%s/%s)]", summary, page.getTotalPages(), page.getTotalPages()),
+                page.getTotalPages() - 1
             );
+            paths.put(control.getPath() + "#last", pageItem);
         }
         return this;
+    }
+
+    private PathItem getPagePathItem(Operation op, String summary, int pageNumber) {
+        Operation operation = new Operation()
+            .summary(summary)
+            .responses(new ApiResponses()._default(new ApiResponse().description("")))
+            .parameters(new ArrayList<>());
+        operation.getParameters().addAll(op.getParameters());
+        IntegerSchema pageSchema = new IntegerSchema();
+        pageSchema.addEnumItemObject(pageNumber);
+        operation.addParametersItem(new Parameter().name("page").in("query").schema(pageSchema).required(true));
+        return new PathItem().get(operation);
     }
 
     public static OhmResponse<Void> noContent() {
@@ -167,6 +193,7 @@ public class OhmResponse<T> {
             this.openAPI = openAPI;
             this.method = method;
             this.path = path;
+            op.responses(new ApiResponses()._default(new ApiResponse().description("")));
         }
 
         public ControlBuilder parameters(Map<String, Object> parameters) {
@@ -226,11 +253,7 @@ public class OhmResponse<T> {
                     operation = pathItem.getTrace();
                     break;
                 default:
-                    throw new IllegalStateException("Unexpected value: " + method);
-            }
-            if (operation == null) {
-                //TODO : replace by specialized ex
-                throw new RuntimeException(String.format("Method %s %s not found in OAS !", method.toString(), path));
+                    throw new RuntimeException(String.format("Method %s %s not found in OAS !", method.toString(), path));
             }
             if (operation.getParameters() != null) {
                 for (Parameter parameter : operation.getParameters()) {
@@ -239,9 +262,11 @@ public class OhmResponse<T> {
                         if (parameter.getIn().equals("path")) {
                             // TODO: avoid multiple creations of Map
                             uriComponentsBuilder.uriVariables(Map.of(parameterName, parameters.get(parameterName)));
-                        }
-                        if (parameter.getIn().equals("query")) {
-                            uriComponentsBuilder.queryParam(parameterName, parameters.get(parameterName));
+                        } else {
+                            Schema schema = new Schema().type(parameter.getSchema().getType()).format(parameter.getSchema().getFormat());
+                            schema.addEnumItemObject(parameters.get(parameterName));
+                            Parameter param = new Parameter().name(parameterName).in(parameter.getIn()).schema(schema);
+                            op.addParametersItem(param);
                         }
                     } else {
                         op.addParametersItem(parameter);
