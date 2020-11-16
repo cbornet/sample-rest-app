@@ -15,23 +15,14 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import springfox.documentation.builders.RequestHandlerSelectors;
-import springfox.documentation.oas.mappers.ServiceModelToOpenApiMapper;
 import springfox.documentation.service.ApiInfo;
 import springfox.documentation.service.Contact;
 import springfox.documentation.spi.DocumentationType;
-import springfox.documentation.spring.web.DocumentationCache;
 import springfox.documentation.spring.web.plugins.Docket;
 
 @Configuration
 @Profile(JHipsterConstants.SPRING_PROFILE_API_DOCS)
 public class OpenApiConfiguration {
-    private final DocumentationCache documentationCache;
-    private final ServiceModelToOpenApiMapper mapper;
-
-    public OpenApiConfiguration(DocumentationCache documentationCache, ServiceModelToOpenApiMapper mapper) {
-        this.documentationCache = documentationCache;
-        this.mapper = mapper;
-    }
 
     @Bean
     public SpringfoxCustomizer noApiFirstCustomizer() {
